@@ -30,20 +30,40 @@ async def get_recent_prayers(
 ):
     """최근 기도 목록"""
     prayers = await StatsService.get_recent_prayers(db, current_user.id, limit)
-    
+
     # 각 기도에 progress_count와 prayer_days 추가
     prayers_with_progress = []
     for prayer in prayers:
         progress_count = await ProgressService.get_progress_count(db, prayer.id)
         prayer_days = PrayerService.calculate_prayer_days(prayer)
-        
+
         prayer_dict = PrayerResponse.model_validate(prayer).model_dump()
         prayer_dict["progress_count"] = progress_count
         prayer_dict["prayer_days"] = prayer_days
-        
+
         prayers_with_progress.append(PrayerWithProgress(**prayer_dict))
-    
+
     return RecentPrayersResponse(
         items=prayers_with_progress,
         total=len(prayers_with_progress)
     )
+
+
+@router.get("/subject-stats")
+async def get_subject_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """주제별 통계"""
+    stats = await StatsService.get_dashboard_stats(db, current_user.id)
+    return stats.get("by_subject", [])
+
+
+@router.get("/answered-without-content")
+async def get_answered_without_content(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """응답 받았지만 내용 미작성 기도 목록"""
+    prayers = await StatsService.get_answered_without_content(db, current_user.id)
+    return [PrayerResponse.model_validate(prayer) for prayer in prayers]

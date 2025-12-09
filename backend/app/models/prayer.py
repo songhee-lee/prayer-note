@@ -31,7 +31,7 @@ class Prayer(Base):
     category_tags = Column(JSONB, default=list, nullable=False)
     
     # 상태 및 날짜
-    status = Column(SQLEnum(PrayerStatus), default=PrayerStatus.ACTIVE, nullable=False, index=True)
+    status = Column(SQLEnum(PrayerStatus, native_enum=False, length=50), default=PrayerStatus.ACTIVE, nullable=False, index=True)
     start_date = Column(Date, nullable=False, index=True)
     answer_date = Column(Date, nullable=True)
     answer_content = Column(Text, nullable=True)

@@ -82,5 +82,23 @@ class StatsService:
             .order_by(Prayer.created_at.desc())
             .limit(limit)
         )
-        
+
+        return list(result.scalars().all())
+
+    @staticmethod
+    async def get_answered_without_content(
+        db: AsyncSession,
+        user_id: UUID
+    ) -> List[Prayer]:
+        """응답 받았지만 내용 미작성 기도 목록"""
+        result = await db.execute(
+            select(Prayer)
+            .where(
+                Prayer.user_id == user_id,
+                Prayer.status == PrayerStatus.ANSWERED,
+                Prayer.answer_content.is_(None)
+            )
+            .order_by(Prayer.answer_date.desc())
+        )
+
         return list(result.scalars().all())
