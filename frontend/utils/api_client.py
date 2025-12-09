@@ -63,7 +63,7 @@ class APIClient:
         return self._handle_response(response)
     
     # ===== 기도 =====
-    def get_prayers(self, 
+    def get_prayers(self,
                     status: Optional[str] = None,
                     subject: Optional[str] = None,
                     search: Optional[str] = None,
@@ -73,7 +73,7 @@ class APIClient:
         """기도 목록 조회"""
         url = f"{self.base_url}/prayers"
         params = {"page": page, "size": size}
-        
+
         if status:
             params["status"] = status
         if subject:
@@ -82,9 +82,14 @@ class APIClient:
             params["search"] = search
         if sort_by:
             params["sort_by"] = sort_by
-        
+
         response = requests.get(url, headers=self._get_headers(), params=params)
-        return self._handle_response(response)
+        result = self._handle_response(response)
+
+        # 응답이 dict이고 items 필드가 있으면 items 반환, 아니면 그대로 반환
+        if isinstance(result, dict) and "items" in result:
+            return result["items"]
+        return result if isinstance(result, list) else []
     
     def get_prayer(self, prayer_id: str) -> Dict:
         """기도 상세 조회"""
@@ -153,7 +158,19 @@ class APIClient:
         """주제별 통계"""
         url = f"{self.base_url}/dashboard/subject-stats"
         response = requests.get(url, headers=self._get_headers())
-        return self._handle_response(response)
+        result = self._handle_response(response)
+
+        # 리스트가 아니면 빈 리스트 반환
+        return result if isinstance(result, list) else []
+
+    def get_answered_without_content(self) -> List[Dict]:
+        """응답 받았지만 내용 미작성 기도 목록"""
+        url = f"{self.base_url}/dashboard/answered-without-content"
+        response = requests.get(url, headers=self._get_headers())
+        result = self._handle_response(response)
+
+        # 리스트가 아니면 빈 리스트 반환
+        return result if isinstance(result, list) else []
 
 
 # 싱글톤 인스턴스

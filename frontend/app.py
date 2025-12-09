@@ -42,6 +42,8 @@ st.markdown("""
 def login_page():
     st.markdown('<h1 class="main-title">🙏 기도 노트</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">하나님께 드리는 기도를 기록하고 응답을 경험하세요</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">📖 기도 노트란?<br/>- 기도 제목을 체계적으로 기록하고 관리<br/>- 기도 응답 과정을 추적하고 통계 확인<br/>- 응답받은 기도를 통해 하나님의 신실하심을 경험</p>', unsafe_allow_html=True)
+
 
     # 탭으로 로그인/회원가입 구분
     tab1, tab2 = st.tabs(["로그인", "회원가입"])
@@ -51,15 +53,6 @@ def login_page():
 
     with tab2:
         signup_form()
-
-    # 하단 안내
-    st.markdown("---")
-    st.markdown("""
-    ### 📖 기도 노트란?
-    - 📝 기도 제목을 체계적으로 기록하고 관리
-    - 📊 기도 응답 과정을 추적하고 통계 확인
-    - ✅ 응답받은 기도를 통해 하나님의 신실하심을 경험
-    """)
 
 def logout():
     if st.button("로그아웃"):

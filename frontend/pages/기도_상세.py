@@ -1,0 +1,257 @@
+"""기도 상세 페이지"""
+import streamlit as st
+from datetime import date, datetime
+from utils.state import init_session_state, is_authenticated
+from utils.api_client import api_client
+
+# 페이지 설정
+st.set_page_config(
+    page_title="기도 상세 - 기도 노트",
+    page_icon="📖",
+    layout="wide"
+)
+
+# 세션 상태 초기화
+init_session_state()
+
+# 인증 체크
+if not is_authenticated():
+    st.warning("로그인이 필요합니다.")
+    st.switch_page("app.py")
+    st.stop()
+
+# 선택된 기도 ID 확인
+if "selected_prayer_id" not in st.session_state or not st.session_state.selected_prayer_id:
+    st.warning("선택된 기도가 없습니다.")
+    if st.button("기도 목록으로 돌아가기"):
+        st.switch_page("pages/3_📋_기도_목록.py")
+    st.stop()
+
+prayer_id = st.session_state.selected_prayer_id
+
+# 기도 정보 로드
+try:
+    with st.spinner("기도 정보를 불러오는 중..."):
+        prayer = api_client.get_prayer(prayer_id)
+        progress_logs = api_client.get_prayer_logs(prayer_id)
+
+    # 헤더
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.title(f"📖 {prayer['title']}")
+    with col2:
+        if st.button("← 목록으로", use_container_width=True):
+            st.switch_page("pages/3_📋_기도_목록.py")
+
+    st.markdown("---")
+
+    # 기도 기본 정보
+    st.subheader("📝 기도 정보")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("주제", prayer["subject"])
+        st.metric("유형", prayer["prayer_type"])
+    with col2:
+        st.metric("시작일", prayer["start_date"])
+        if prayer.get("answer_date"):
+            st.metric("응답일", prayer["answer_date"])
+    with col3:
+        status_text = "✅ 응답받음" if prayer["status"] == "answered" else "🔵 진행중"
+        st.metric("상태", status_text)
+
+        # 기도 일수 계산
+        if prayer["status"] == "answered" and prayer.get("answer_date"):
+            end_date = datetime.strptime(prayer["answer_date"], "%Y-%m-%d").date()
+        else:
+            end_date = date.today()
+
+        start_date = datetime.strptime(prayer["start_date"], "%Y-%m-%d").date()
+        prayer_days = (end_date - start_date).days + 1
+        st.metric("기도 일수", f"{prayer_days}일")
+
+    # 기도 내용
+    st.markdown("### 기도 내용")
+    st.markdown(f"> {prayer['content']}")
+
+    # 기도 대상 및 태그
+    if prayer.get("prayer_targets"):
+        st.markdown("**기도 대상:** " + ", ".join(prayer["prayer_targets"]))
+    if prayer.get("category_tags"):
+        st.markdown("**카테고리:** " + ", ".join(prayer["category_tags"]))
+
+    # 응답 내용 (있는 경우)
+    if prayer["status"] == "answered":
+        st.markdown("---")
+        st.subheader("✨ 응답 내용")
+        if prayer.get("answer_content"):
+            st.success(prayer["answer_content"])
+        else:
+            st.warning("⚠️ 응답 받음으로 표시되었지만, 응답 내용이 작성되지 않았습니다.")
+
+            # 응답 내용 추가 폼
+            with st.form("add_answer_content"):
+                answer_content = st.text_area(
+                    "응답 내용을 작성해주세요",
+                    height=150,
+                    placeholder="어떤 응답을 받으셨나요?"
+                )
+
+                if st.form_submit_button("응답 내용 저장", type="primary"):
+                    try:
+                        api_client.mark_as_answered(prayer_id, {
+                            "answer_date": prayer["answer_date"],
+                            "answer_content": answer_content
+                        })
+                        st.success("응답 내용이 저장되었습니다!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"저장 실패: {str(e)}")
+
+    st.markdown("---")
+
+    # 응답 과정 기록
+    st.subheader("📋 응답 과정 기록")
+
+    # 새 기록 추가 폼
+    with st.expander("➕ 새 기록 추가", expanded=False):
+        with st.form("add_progress"):
+            progress_content = st.text_area(
+                "기록 내용",
+                height=150,
+                placeholder="오늘의 기도 응답 과정을 기록해주세요..."
+            )
+
+            col1, col2 = st.columns([1, 4])
+            with col1:
+                if st.form_submit_button("등록", type="primary", use_container_width=True):
+                    if not progress_content.strip():
+                        st.error("내용을 입력해주세요.")
+                    else:
+                        try:
+                            api_client.create_prayer_log(prayer_id, {
+                                "content": progress_content,
+                                "recorded_date": date.today().isoformat()
+                            })
+                            st.success("기록이 추가되었습니다!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"등록 실패: {str(e)}")
+
+    # 기존 기록 목록
+    if progress_logs:
+        st.markdown(f"**총 {len(progress_logs)}개의 기록**")
+
+        for log in progress_logs:
+            with st.container(border=True):
+                col1, col2 = st.columns([4, 1])
+
+                with col1:
+                    st.markdown(f"**{log['recorded_date']}**")
+
+                    # 수정 모드
+                    if st.session_state.get("edit_log_id") == log["id"]:
+                        with st.form(f"edit_log_{log['id']}"):
+                            edited_content = st.text_area(
+                                "내용 수정",
+                                value=log["content"],
+                                height=100
+                            )
+
+                            col_a, col_b, col_c = st.columns([1, 1, 3])
+                            with col_a:
+                                if st.form_submit_button("저장", type="primary"):
+                                    try:
+                                        api_client.update_prayer_log(
+                                            prayer_id,
+                                            log["id"],
+                                            {"content": edited_content}
+                                        )
+                                        st.session_state.edit_log_id = None
+                                        st.success("수정되었습니다!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"수정 실패: {str(e)}")
+
+                            with col_b:
+                                if st.form_submit_button("취소"):
+                                    st.session_state.edit_log_id = None
+                                    st.rerun()
+                    else:
+                        st.markdown(log["content"])
+
+                        # 등록일/수정일 표시
+                        created_at = datetime.fromisoformat(log["created_at"].replace("Z", "+00:00"))
+                        updated_at = datetime.fromisoformat(log["updated_at"].replace("Z", "+00:00"))
+
+                        info_text = f"*등록: {created_at.strftime('%Y-%m-%d %H:%M')}*"
+                        if created_at != updated_at:
+                            info_text += f" | *수정: {updated_at.strftime('%Y-%m-%d %H:%M')}*"
+
+                        st.caption(info_text)
+
+                with col2:
+                    if st.session_state.get("edit_log_id") != log["id"]:
+                        if st.button("✏️", key=f"edit_{log['id']}", use_container_width=True):
+                            st.session_state.edit_log_id = log["id"]
+                            st.rerun()
+
+                        if st.button("🗑️", key=f"delete_{log['id']}", use_container_width=True):
+                            try:
+                                api_client.delete_prayer_log(prayer_id, log["id"])
+                                st.success("삭제되었습니다!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"삭제 실패: {str(e)}")
+    else:
+        st.info("아직 기록이 없습니다. 첫 기록을 추가해보세요!")
+
+    # 응답 받음 처리 버튼 (진행중인 경우에만)
+    if prayer["status"] != "answered":
+        st.markdown("---")
+        if st.button("✅ 응답 받음으로 표시", type="primary", use_container_width=True):
+            st.session_state.show_answer_modal = True
+            st.rerun()
+
+        # 응답 모달
+        if st.session_state.get("show_answer_modal"):
+            with st.form("answer_form"):
+                st.subheader("✨ 응답 받으셨나요?")
+
+                answer_date = st.date_input(
+                    "응답 날짜",
+                    value=date.today()
+                )
+
+                answer_content = st.text_area(
+                    "응답 내용",
+                    height=150,
+                    placeholder="어떤 응답을 받으셨나요?"
+                )
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.form_submit_button("응답 등록", type="primary", use_container_width=True):
+                        if not answer_content.strip():
+                            st.error("응답 내용을 입력해주세요.")
+                        else:
+                            try:
+                                api_client.mark_as_answered(prayer_id, {
+                                    "answer_date": answer_date.isoformat(),
+                                    "answer_content": answer_content
+                                })
+                                st.session_state.show_answer_modal = False
+                                st.success("응답이 등록되었습니다!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"등록 실패: {str(e)}")
+
+                with col2:
+                    if st.form_submit_button("취소", use_container_width=True):
+                        st.session_state.show_answer_modal = False
+                        st.rerun()
+
+except Exception as e:
+    st.error(f"데이터를 불러오는데 실패했습니다: {str(e)}")
+    if st.button("기도 목록으로 돌아가기"):
+        st.switch_page("pages/3_📋_기도_목록.py")

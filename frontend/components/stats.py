@@ -6,27 +6,27 @@ import pandas as pd
 
 def render_stat_cards(stats: Dict):
     """통계 카드 그리드"""
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             label="📚 전체 기도",
             value=stats.get("total_prayers", 0)
         )
-    
+
     with col2:
         st.metric(
             label="🔵 진행 중",
-            value=stats.get("in_progress", 0)
+            value=stats.get("active_prayers", 0)
         )
-    
+
     with col3:
         st.metric(
             label="✅ 응답받음",
-            value=stats.get("answered", 0)
+            value=stats.get("answered_prayers", 0)
         )
-    
+
     with col4:
         answer_rate = stats.get("answer_rate", 0)
         st.metric(
@@ -37,36 +37,36 @@ def render_stat_cards(stats: Dict):
 
 def render_subject_chart(subject_stats: List[Dict]):
     """주제별 통계 차트"""
-    
+
     if not subject_stats:
         st.info("아직 기도 데이터가 없습니다.")
         return
-    
+
     # 데이터 변환
     df = pd.DataFrame(subject_stats)
-    
+
     if df.empty:
         st.info("통계 데이터가 없습니다.")
         return
-    
+
     # 테이블로 표시
     st.subheader("📊 주제별 통계")
-    
-    # 데이터 정리
+
+    # 데이터 정리 - subject와 count 컬럼만 있음
     df_display = df.copy()
-    df_display.columns = ["주제", "진행 중", "응답받음", "전체"]
-    
-    # 전체 기준 내림차순 정렬
-    df_display = df_display.sort_values("전체", ascending=False)
-    
+    df_display.columns = ["주제", "개수"]
+
+    # 개수 기준 내림차순 정렬
+    df_display = df_display.sort_values("개수", ascending=False)
+
     st.dataframe(
         df_display,
         hide_index=True,
         use_container_width=True
     )
-    
+
     # 간단한 바 차트
-    st.bar_chart(df_display.set_index("주제")[["진행 중", "응답받음"]])
+    st.bar_chart(df_display.set_index("주제")["개수"])
 
 
 def render_simple_stats_row(stats: Dict):

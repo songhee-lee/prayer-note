@@ -51,7 +51,7 @@ if user:
     st.info("""
     ### 📱 앱 정보
     - 버전: MVP 1.0
-    - 문의: support@prayer-note.com
+    - 문의: songhee172@gmail.com
     """)
 
 else:

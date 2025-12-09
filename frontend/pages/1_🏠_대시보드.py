@@ -30,11 +30,29 @@ try:
         stats = api_client.get_dashboard_stats()
         subject_stats = api_client.get_subject_stats()
         recent_prayers = api_client.get_prayers(sort_by="created_at_desc", size=5)
-    
+        answered_without_content = api_client.get_answered_without_content()
+
     # 통계 카드
     render_stat_cards(stats)
-    
+
     st.markdown("---")
+
+    # 응답 내용 미작성 기도 경고
+    if answered_without_content:
+        st.warning(f"⚠️ 응답 받았지만 내용을 작성하지 않은 기도가 {len(answered_without_content)}개 있습니다!")
+
+        with st.expander("📝 응답 내용 미작성 기도 목록", expanded=True):
+            for prayer in answered_without_content:
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"**{prayer['title']}** - {prayer['subject']}")
+                    st.caption(f"응답일: {prayer.get('answer_date', 'N/A')}")
+                with col2:
+                    if st.button("작성하기", key=f"write_{prayer['id']}", use_container_width=True):
+                        st.session_state.selected_prayer_id = prayer['id']
+                        st.switch_page("pages/기도_상세.py")
+
+        st.markdown("---")
     
     # 2단 레이아웃
     col1, col2 = st.columns([3, 2])
