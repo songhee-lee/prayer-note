@@ -1,6 +1,6 @@
 """기도 등록/수정 페이지"""
 import streamlit as st
-from utils.state import init_session_state, is_authenticated
+from utils.state import init_session_state, is_authenticated, try_auto_login
 from utils.api_client import api_client
 from components.prayer_form import render_prayer_form
 
@@ -13,6 +13,9 @@ st.set_page_config(
 
 # 세션 상태 초기화
 init_session_state()
+
+# 자동 로그인 시도
+try_auto_login()
 
 # 인증 체크
 if not is_authenticated():

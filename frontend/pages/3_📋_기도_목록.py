@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime
-from utils.state import init_session_state, is_authenticated
+from utils.state import init_session_state, is_authenticated, try_auto_login
 from utils.api_client import api_client
 from components.filters import render_filters
 
@@ -15,6 +15,9 @@ st.set_page_config(
 
 # 세션 상태 초기화
 init_session_state()
+
+# 자동 로그인 시도
+try_auto_login()
 
 # 인증 체크
 if not is_authenticated():

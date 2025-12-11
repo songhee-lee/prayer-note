@@ -66,11 +66,17 @@ def login_form():
             try:
                 with st.spinner("로그인 중..."):
                     response = api_client.login(email, password)
-                    save_token(response["access_token"], remember_me=remember_me)
+
+                    # 먼저 토큰을 세션에 저장
+                    st.session_state.token = response["access_token"]
+                    st.session_state.authenticated = True
 
                     # 사용자 정보 조회
                     user = api_client.get_current_user()
                     st.session_state.user = user
+
+                    # 사용자 정보를 받은 후 파일에 저장
+                    save_token(response["access_token"], remember_me=remember_me)
 
                     st.success("로그인 성공!")
                     st.rerun()
