@@ -42,35 +42,36 @@ def validate_username(username: str) -> tuple[bool, str]:
 def login_form():
     """로그인 폼"""
     st.subheader("🔐 로그인")
-    
+
     with st.form("login_form"):
         email = st.text_input("이메일", placeholder="example@email.com")
         password = st.text_input("비밀번호", type="password")
-        
+        remember_me = st.checkbox("로그인 상태 유지", value=True, help="브라우저를 닫아도 로그인 상태가 유지됩니다 (30일간)")
+
         submitted = st.form_submit_button("로그인", use_container_width=True)
-        
+
         if submitted:
             # 검증
             is_valid, error_msg = validate_email(email)
             if not is_valid:
                 st.error(error_msg)
                 return
-            
+
             is_valid, error_msg = validate_password(password)
             if not is_valid:
                 st.error(error_msg)
                 return
-            
+
             # API 호출
             try:
                 with st.spinner("로그인 중..."):
                     response = api_client.login(email, password)
-                    save_token(response["access_token"])
-                    
+                    save_token(response["access_token"], remember_me=remember_me)
+
                     # 사용자 정보 조회
                     user = api_client.get_current_user()
                     st.session_state.user = user
-                    
+
                     st.success("로그인 성공!")
                     st.rerun()
             except Exception as e:

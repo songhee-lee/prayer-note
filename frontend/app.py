@@ -6,7 +6,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
-from utils.state import init_session_state, is_authenticated
+from utils.state import init_session_state, is_authenticated, try_auto_login
 from components.auth import login_form, signup_form
 
 # 페이지 설정
@@ -19,6 +19,9 @@ st.set_page_config(
 
 # 세션 상태 초기화
 init_session_state()
+
+# 자동 로그인 시도 (쿠키에 저장된 토큰이 있으면 자동 로그인)
+try_auto_login()
 
 # 커스텀 CSS
 st.markdown("""
