@@ -9,7 +9,7 @@ from utils.formatters import format_date
 def render_log_form(prayer_id: str):
     """응답 과정 기록 추가 폼"""
     
-    st.subheader("📝 응답 과정 기록 추가")
+    st.markdown("##### 📝 응답 과정 기록 추가")
     
     with st.form("prayer_log_form", clear_on_submit=True):
         log_date = st.date_input(
@@ -74,7 +74,7 @@ def render_log_list(prayer_id: str):
             st.info("아직 응답 과정 기록이 없습니다.")
             return
         
-        st.subheader(f"📋 응답 과정 기록 ({len(logs)}개)")
+        st.markdown(f"##### 📋 응답 과정 기록 ({len(logs)}개)")
 
         # 최신순 정렬
         logs_sorted = sorted(logs, key=lambda x: x["recorded_date"], reverse=True)
@@ -107,7 +107,7 @@ def render_log_list(prayer_id: str):
 def render_answer_form(prayer_id: str):
     """최종 응답 기록 폼"""
     
-    st.subheader("✅ 기도 응답 처리")
+    st.markdown("##### ✅ 기도 응답 처리")
     
     with st.form("answer_form"):
         answered_date = st.date_input(

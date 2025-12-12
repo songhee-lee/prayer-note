@@ -23,8 +23,6 @@ if not is_authenticated():
     st.switch_page("app.py")
     st.stop()
 
-# 메인 컨텐츠
-st.title("✍️ 기도 등록")
 
 # 수정 모드 체크
 is_edit_mode = st.session_state.get("edit_mode", False)

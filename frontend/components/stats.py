@@ -50,7 +50,7 @@ def render_subject_chart(subject_stats: List[Dict]):
         return
 
     # 테이블로 표시
-    st.subheader("📊 주제별 통계")
+    st.markdown("##### 📊 주제별 통계")
 
     # 데이터 정리 - subject와 count 컬럼만 있음
     df_display = df.copy()

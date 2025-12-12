@@ -1,6 +1,6 @@
 """대시보드 페이지"""
 import streamlit as st
-from utils.state import init_session_state, is_authenticated, try_auto_login
+from utils.state import init_session_state, is_authenticated, try_auto_login, get_current_user
 from utils.api_client import api_client
 from components.stats import render_stat_cards, render_subject_chart
 from components.prayer_card import render_prayer_card_simple
@@ -25,7 +25,8 @@ if not is_authenticated():
     st.stop()
 
 # 메인 컨텐츠
-st.title("🏠 대시보드")
+user = get_current_user()
+st.subheader(f"🙏 {user.get('name', '-')}의 기도 노트")
 
 try:
     # 통계 데이터 로드
@@ -66,7 +67,7 @@ try:
     
     with col2:
         # 최근 기도 목록
-        st.subheader("📝 최근 기도")
+        st.markdown("##### 📝 최근 기도")
         
         if recent_prayers:
             for prayer in recent_prayers:

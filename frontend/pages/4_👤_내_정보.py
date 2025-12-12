@@ -22,8 +22,6 @@ if not is_authenticated():
     st.switch_page("app.py")
     st.stop()
 
-# 메인 컨텐츠
-st.title("👤 내 정보")
 
 user = get_current_user()
 
@@ -36,7 +34,7 @@ if user:
         
         with col1:
             st.markdown(f"**이메일:** {user.get('email', '-')}")
-            st.markdown(f"**사용자명:** {user.get('username', '-')}")
+            st.markdown(f"**사용자명:** {user.get('name', '-')}")
         
         with col2:
             from utils.formatters import format_datetime

@@ -25,8 +25,6 @@ if not is_authenticated():
     st.switch_page("app.py")
     st.stop()
 
-# 메인 컨텐츠
-st.title("📋 기도 목록")
 
 # 필터링 UI
 with st.expander("🔍 필터 및 검색", expanded=True):
@@ -43,7 +41,8 @@ try:
         )
 
     # 결과 표시
-    st.markdown(f"### 총 {len(prayers)}개의 기도")
+    st.markdown("\n\n---")
+    st.markdown(f"##### 총 {len(prayers)}개의 기도")
 
     if not prayers:
         st.info("조건에 맞는 기도가 없습니다.")

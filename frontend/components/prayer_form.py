@@ -43,7 +43,7 @@ def render_prayer_form(mode: str = "create", prayer_data: Optional[Dict] = None)
     is_edit = mode == "edit" and prayer_data is not None
     form_title = "✏️ 기도 수정" if is_edit else "✍️ 새 기도 등록"
     
-    st.subheader(form_title)
+    st.markdown(f"##### {form_title}")
     
     with st.form("prayer_form", clear_on_submit=not is_edit):
         # 주제 선택

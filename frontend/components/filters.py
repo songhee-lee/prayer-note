@@ -7,7 +7,7 @@ from config.constants import PRAYER_SUBJECTS, PRAYER_TYPES, SORT_OPTIONS
 def render_filters() -> Dict:
     """필터링 UI 렌더링 및 필터 파라미터 반환"""
     
-    st.subheader("🔍 필터 및 검색")
+    st.markdown("##### 🔍 필터 및 검색")
     
     col1, col2 = st.columns(2)
     

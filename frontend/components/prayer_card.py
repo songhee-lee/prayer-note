@@ -28,7 +28,7 @@ def render_prayer_card(prayer: Dict, show_actions: bool = True):
         # 헤더 (제목 + 상태)
         col1, col2 = st.columns([4, 1])
         with col1:
-            st.markdown(f"### {prayer.get('title', '제목 없음')}")
+            st.markdown(f"##### {prayer.get('title', '제목 없음')}")
         with col2:
             st.markdown(f"{status_emoji} **{status_text}**")
         
